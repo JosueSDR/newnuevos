@@ -14,6 +14,19 @@ export const fetchAllPokemon = createAsyncThunk(
   }
 );
 
+export const fetchAPokemon = createAsyncThunk(
+  'pokemon/fetchA',
+  async (id, thunkAPI) => {
+    try {
+      const data = await servicePokemon.getAPokemon(id);
+      return data;
+    } catch (error) {
+      const message = (error.response && error.response.data && error.response.data.message) || error.message || error.toString();
+      return thunkAPI.rejectWithValue(message);
+    }
+  }
+);
+
 // Define el slice
 const pokemonSlice = createSlice({
   name: 'pokemon',
@@ -33,6 +46,17 @@ const pokemonSlice = createSlice({
         state.pokemons = action.payload.results; // Asegúrate de ajustar según la estructura de los datos devueltos
       })
       .addCase(fetchAllPokemon.rejected, (state, action) => {
+        state.status = 'failed';
+        state.error = action.payload || action.error.message;
+      })
+      .addCase(fetchAPokemon.pending, (state) => {
+        state.status = 'loading';
+      })
+      .addCase(fetchAPokemon.fulfilled, (state, action) => {
+        state.status = 'succeeded';
+        state.pokemons = action.payload // Asegúrate de ajustar según la estructura de los datos devueltos
+      })
+      .addCase(fetchAPokemon.rejected, (state, action) => {
         state.status = 'failed';
         state.error = action.payload || action.error.message;
       });
